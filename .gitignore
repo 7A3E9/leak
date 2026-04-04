@@ -1,4 +1,4 @@
--- [ MINIMALIST MAP DUMPER UI ]
+-- [ MODERN MAP DUMPER UI ]
 -- Services
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -7,13 +7,24 @@ local CoreGui = game:GetService("CoreGui")
 
 local LP = Players.LocalPlayer
 
--- Cleanup
-local oldGui = CoreGui:FindFirstChild("MinimalistDumper")
+-- Cleanup Old UI
+local oldGui = CoreGui:FindFirstChild("MapDumperHub")
 if oldGui then oldGui:Destroy() end
+
+-- [ VARIABLES & SETTINGS ]
+local Colors = {
+    Background = Color3.fromRGB(20, 20, 20),
+    ElementBg = Color3.fromRGB(30, 30, 30),
+    Hover = Color3.fromRGB(40, 40, 40),
+    Stroke = Color3.fromRGB(50, 50, 50),
+    TextWhite = Color3.fromRGB(240, 240, 240),
+    TextGray = Color3.fromRGB(170, 170, 170),
+    Accent = Color3.fromRGB(100, 170, 255)
+}
 
 -- [ GUI SETUP ]
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MinimalistDumper"
+ScreenGui.Name = "MapDumperHub"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -21,94 +32,167 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 320, 0, 200)
-MainFrame.Position = UDim2.new(0.5, -160, 0.5, -100)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- ดำเข้ม
+MainFrame.Size = UDim2.new(0, 420, 0, 260)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -130)
+MainFrame.BackgroundColor3 = Colors.Background
 MainFrame.BorderSizePixel = 0
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+MainFrame.ClipsDescendants = true
 
--- กรอบสีขาว (Stroke)
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Parent = MainFrame
-UIStroke.Color = Color3.fromRGB(255, 255, 255) -- ขาว
-UIStroke.Thickness = 1.5
-UIStroke.Transparency = 0.2
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
 
--- Title
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Parent = MainFrame
+MainStroke.Color = Colors.Stroke
+MainStroke.Thickness = 1.2
+MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+-- [ TOP BAR (DRAGGABLE) ]
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+TopBar.BackgroundTransparency = 1
+
 local Title = Instance.new("TextLabel")
-Title.Parent = MainFrame
-Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Parent = TopBar
+Title.Size = UDim2.new(1, -20, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "LEAK UTILITY"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "🔥 Map Dumper Script | Made by 7A3E9"
+Title.TextColor3 = Colors.TextWhite
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 20
+Title.TextSize = 14
+Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Subtitle / Status
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Parent = MainFrame
-StatusLabel.Size = UDim2.new(1, -20, 0, 20)
-StatusLabel.Position = UDim2.new(0, 10, 1, -35)
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Ready."
-StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150) -- เทา
-StatusLabel.Font = Enum.Font.Gotham
-StatusLabel.TextSize = 12
-StatusLabel.TextXAlignment = 0
+-- Divider Line
+local TopDivider = Instance.new("Frame")
+TopDivider.Parent = MainFrame
+TopDivider.Size = UDim2.new(1, 0, 0, 1)
+TopDivider.Position = UDim2.new(0, 0, 0, 40)
+TopDivider.BackgroundColor3 = Colors.Stroke
+TopDivider.BorderSizePixel = 0
 
--- [ HELPER: HOVER EFFECT ]
-local function AddHoverEffect(btn)
-    local originalSize = btn.Size
-    local hoverSize = UDim2.new(originalSize.X.Scale, originalSize.X.Offset + 10, originalSize.Y.Scale, originalSize.Y.Offset + 4)
-    
-    btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = hoverSize,
-            BackgroundColor3 = Color3.fromRGB(60, 60, 60) -- เทาเข้มขึ้นเมื่อชี้
-        }):Play()
-    end)
-    
-    btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = originalSize,
-            BackgroundColor3 = Color3.fromRGB(45, 45, 45) -- กลับเป็นสีเดิม
-        }):Play()
-    end)
+-- [ CONTENT CONTAINER ]
+local Content = Instance.new("Frame")
+Content.Name = "Content"
+Content.Parent = MainFrame
+Content.Size = UDim2.new(1, 0, 1, -41)
+Content.Position = UDim2.new(0, 0, 0, 41)
+Content.BackgroundTransparency = 1
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = Content
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 8)
+
+local UIPadding = Instance.new("UIPadding")
+UIPadding.Parent = Content
+UIPadding.PaddingTop = UDim.new(0, 12)
+UIPadding.PaddingLeft = UDim.new(0, 15)
+UIPadding.PaddingRight = UDim.new(0, 15)
+UIPadding.PaddingBottom = UDim.new(0, 12)
+
+-- [ HELPER FUNCTIONS ]
+local function createSectionText(text)
+    local Label = Instance.new("TextLabel")
+    Label.Parent = Content
+    Label.Size = UDim2.new(1, 0, 0, 18)
+    Label.BackgroundTransparency = 1
+    Label.Text = text
+    Label.TextColor3 = Colors.TextGray
+    Label.Font = Enum.Font.GothamMedium
+    Label.TextSize = 12
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    return Label
 end
 
--- [ BUTTON 1: NORMAL SAVEINSTANCE ]
-local Btn1 = Instance.new("TextButton")
-Btn1.Parent = MainFrame
-Btn1.Size = UDim2.new(0.85, 0, 0, 45)
-Btn1.Position = UDim2.new(0.075, 0, 0, 55)
-Btn1.BackgroundColor3 = Color3.fromRGB(45, 45, 45) -- เทาเข้ม
-Btn1.Text = "💾 LEAK SCRIPT"
-Btn1.TextColor3 = Color3.fromRGB(255, 255, 255)
-Btn1.Font = Enum.Font.GothamBold
-Btn1.TextSize = 15
-Btn1.AutoButtonColor = false
-Btn1.BorderSizePixel = 0
-Instance.new("UICorner", Btn1).CornerRadius = UDim.new(0, 8)
-AddHoverEffect(Btn1)
+local function createRowButton(text, actionText)
+    local Btn = Instance.new("TextButton")
+    Btn.Parent = Content
+    Btn.Size = UDim2.new(1, 0, 0, 38)
+    Btn.BackgroundColor3 = Colors.ElementBg
+    Btn.AutoButtonColor = false
+    Btn.Text = ""
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.Parent = Btn
+    
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Parent = Btn
+    Stroke.Color = Colors.Stroke
+    Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    
+    local MainText = Instance.new("TextLabel")
+    MainText.Parent = Btn
+    MainText.Size = UDim2.new(1, -90, 1, 0)
+    MainText.Position = UDim2.new(0, 12, 0, 0)
+    MainText.BackgroundTransparency = 1
+    MainText.Text = text
+    MainText.TextColor3 = Colors.TextWhite
+    MainText.Font = Enum.Font.GothamMedium
+    MainText.TextSize = 14
+    MainText.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local ActionFrame = Instance.new("Frame")
+    ActionFrame.Parent = Btn
+    ActionFrame.Size = UDim2.new(0, 70, 0, 24)
+    ActionFrame.Position = UDim2.new(1, -80, 0.5, -12)
+    ActionFrame.BackgroundColor3 = Colors.Background
+    Instance.new("UICorner", ActionFrame).CornerRadius = UDim.new(0, 4)
+    Instance.new("UIStroke", ActionFrame).Color = Colors.Stroke
+    
+    local ActionLabel = Instance.new("TextLabel")
+    ActionLabel.Parent = ActionFrame
+    ActionLabel.Size = UDim2.new(1, 0, 1, 0)
+    ActionLabel.BackgroundTransparency = 1
+    ActionLabel.Text = actionText or "Execute"
+    ActionLabel.TextColor3 = Colors.TextGray
+    ActionLabel.Font = Enum.Font.Gotham
+    ActionLabel.TextSize = 12
+    
+    -- Hover Animations
+    Btn.MouseEnter:Connect(function()
+        TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Colors.Hover}):Play()
+        TweenService:Create(ActionLabel, TweenInfo.new(0.2), {TextColor3 = Colors.TextWhite}):Play()
+    end)
+    Btn.MouseLeave:Connect(function()
+        TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Colors.ElementBg}):Play()
+        TweenService:Create(ActionLabel, TweenInfo.new(0.2), {TextColor3 = Colors.TextGray}):Play()
+    end)
+    
+    return Btn
+end
 
--- [ BUTTON 2: TERRAIN SAVE (LOADSTRING) ]
-local Btn2 = Instance.new("TextButton")
-Btn2.Parent = MainFrame
-Btn2.Size = UDim2.new(0.85, 0, 0, 45)
-Btn2.Position = UDim2.new(0.075, 0, 0, 110)
-Btn2.BackgroundColor3 = Color3.fromRGB(45, 45, 45) -- เทาเข้ม
-Btn2.Text = "🗺️ LEAK MAP (TERRAIN)"
-Btn2.TextColor3 = Color3.fromRGB(255, 255, 255)
-Btn2.Font = Enum.Font.GothamBold
-Btn2.TextSize = 15
-Btn2.AutoButtonColor = false
-Btn2.BorderSizePixel = 0
-Instance.new("UICorner", Btn2).CornerRadius = UDim.new(0, 8)
-AddHoverEffect(Btn2)
+-- [ BUILD UI ELEMENTS ]
+createSectionText("Main Functions")
+local Btn1 = createRowButton("💾  Leak Standard Script", "Save")
+local Btn2 = createRowButton("🗺️  Leak Map (With Terrain)", "Load")
+
+createSectionText("Status")
+local StatusContainer = Instance.new("Frame")
+StatusContainer.Parent = Content
+StatusContainer.Size = UDim2.new(1, 0, 0, 30)
+StatusContainer.BackgroundColor3 = Colors.Background
+Instance.new("UICorner", StatusContainer).CornerRadius = UDim.new(0, 6)
+Instance.new("UIStroke", StatusContainer).Color = Colors.Stroke
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Parent = StatusContainer
+StatusLabel.Size = UDim2.new(1, -20, 1, 0)
+StatusLabel.Position = UDim2.new(0, 10, 0, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Idle..."
+StatusLabel.TextColor3 = Colors.TextGray
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextSize = 13
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- [ DRAGGABLE LOGIC ]
 local dragging, dragInput, dragStart, startPos
-MainFrame.InputBegan:Connect(function(input)
+TopBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
@@ -122,7 +206,7 @@ MainFrame.InputBegan:Connect(function(input)
     end
 end)
 
-MainFrame.InputChanged:Connect(function(input)
+TopBar.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
@@ -136,20 +220,18 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- [ BUTTON LOGIC ]
-
--- Function: Set Status
-local function setStatus(text, color)
+local function updateStatus(text, color)
     StatusLabel.Text = text
-    StatusLabel.TextColor3 = color or Color3.fromRGB(150, 150, 150)
+    TweenService:Create(StatusLabel, TweenInfo.new(0.3), {TextColor3 = color or Colors.TextGray}):Play()
 end
 
 -- Button 1: Standard
 Btn1.MouseButton1Click:Connect(function()
-    setStatus("Saving Script...", Color3.fromRGB(255, 255, 150))
-    task.wait(0.5)
+    updateStatus("Saving Script...", Color3.fromRGB(255, 200, 100))
+    task.wait(0.1)
     
     if not saveinstance then
-        setStatus("Error: Executor unsupported", Color3.fromRGB(255, 80, 80))
+        updateStatus("Error: Executor unsupported", Color3.fromRGB(255, 80, 80))
         return
     end
     
@@ -158,27 +240,26 @@ Btn1.MouseButton1Click:Connect(function()
     end)
     
     if success then
-        setStatus("Success! Check workspace folder.", Color3.fromRGB(100, 255, 100))
+        updateStatus("Success! Check workspace folder.", Color3.fromRGB(100, 255, 100))
     else
-        setStatus("Error: " .. tostring(err):sub(1, 20), Color3.fromRGB(255, 80, 80))
+        updateStatus("Error: " .. tostring(err):sub(1, 30), Color3.fromRGB(255, 80, 80))
     end
 end)
 
--- Button 2: Terrain (Loadstring)
+-- Button 2: Terrain
 Btn2.MouseButton1Click:Connect(function()
-    setStatus("Downloading Terrain Saver...", Color3.fromRGB(255, 255, 150))
-    task.wait(0.5)
+    updateStatus("Downloading Terrain Saver...", Color3.fromRGB(255, 200, 100))
+    task.wait(0.1)
     
     local success, err = pcall(function()
-        -- โค้ดที่ผู้ใช้ให้มา
         local synsaveinstance = loadstring(game:HttpGet("https://raw.githubusercontent.com/verysigmapro/UniversalSynSaveInstance-With-Save-Terrain/refs/heads/main/saveinstance_rewrite.luau", true), "saveinstance")();
-        local SaveinstanceOptions = {usekonstantdecompiler=false} --set to true if u dont have a decompiler
-        synsaveinstance(SaveinstanceOptions);
+        local SaveinstanceOptions = {usekonstantdecompiler = false}
+        synsaveinstance(SaveinstanceOptions)
     end)
     
     if success then
-        setStatus("Success! Map saved.", Color3.fromRGB(100, 255, 100))
+        updateStatus("Success! Map saved.", Color3.fromRGB(100, 255, 100))
     else
-        setStatus("Error: " .. tostring(err):sub(1, 20), Color3.fromRGB(255, 80, 80))
+        updateStatus("Error: " .. tostring(err):sub(1, 30), Color3.fromRGB(255, 80, 80))
     end
 end)
